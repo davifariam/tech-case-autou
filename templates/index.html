@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoU - Classificador de Emails</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; }
+        .card-result { display: none; transition: all 0.3s; }
+        .loading { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center mb-4">
+                <h1 class="fw-bold text-primary">📧 AutoMail AI</h1>
+                <p class="text-muted">Classificação inteligente e resposta automática para times financeiros.</p>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form id="emailForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Opção 1: Cole o texto do email</label>
+                            <textarea class="form-control" id="emailText" rows="4" placeholder="Ex: Olá, gostaria de saber o status da minha solicitação..."></textarea>
+                        </div>
+                        
+                        <div class="text-center my-2 text-muted">- OU -</div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Opção 2: Envie um arquivo (.txt ou .pdf)</label>
+                            <input class="form-control" type="file" id="emailFile" accept=".txt, .pdf">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
+                            <span class="loading spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span class="btn-text">Processar Email</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card card-result shadow-sm border-0" id="resultCard">
+                <div class="card-header text-white fw-bold" id="resultHeader">
+                    Resultado da Análise
+                </div>
+                <div class="card-body p-4">
+                    <h5 class="card-title">Categoria: <span id="categoryBadge" class="badge"></span></h5>
+                    <hr>
+                    <label class="form-label fw-bold text-muted">Sugestão de Resposta:</label>
+                    <div class="bg-light p-3 rounded border" id="replyText"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('emailForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // UI Handling
+        const btnText = document.querySelector('.btn-text');
+        const spinner = document.querySelector('.loading');
+        const resultCard = document.getElementById('resultCard');
+        
+        btnText.textContent = "Analisando...";
+        spinner.style.display = "inline-block";
+        resultCard.style.display = "none";
+
+        // Preparar dados
+        const formData = new FormData();
+        const text = document.getElementById('emailText').value;
+        const file = document.getElementById('emailFile').files[0];
+
+        if (file) {
+            formData.append('file', file);
+        } else {
+            formData.append('email_text', text);
+        }
+
+        try {
+            const response = await fetch('/process', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            // Exibir Resultado
+            const header = document.getElementById('resultHeader');
+            const badge = document.getElementById('categoryBadge');
+            
+            if (data.classification === 'Produtivo') {
+                header.className = 'card-header bg-success text-white fw-bold';
+                badge.className = 'badge bg-success';
+            } else {
+                header.className = 'card-header bg-secondary text-white fw-bold';
+                badge.className = 'badge bg-secondary';
+            }
+
+            badge.textContent = data.classification;
+            document.getElementById('replyText').innerText = data.reply;
+            resultCard.style.display = "block";
+
+        } catch (error) {
+            alert("Erro ao processar. Verifique o console.");
+        } finally {
+            btnText.textContent = "Processar Email";
+            spinner.style.display = "none";
+        }
+    });
+</script>
+
+</body>
+</html>
