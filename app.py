@@ -5,7 +5,6 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import PyPDF2
 
-# Carrega a chave do .env
 load_dotenv()
 
 app = Flask(__name__)
@@ -14,9 +13,7 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1"
 )
 
-# --- 1. NLP / Pré-processamento (Requisito do Case) ---
 def preprocess_text(text):
-    # Remove caracteres especiais e espaços extras (Simples e eficiente)
     text = re.sub(r'\s+', ' ', text)
     text = re.sub(r'[^\w\s]', '', text)
     return text.strip()
@@ -28,7 +25,6 @@ def read_pdf(file):
         text += page.extract_text() or ""
     return text
 
-# --- 2. Função de IA (O Cérebro) ---
 def analyze_email(content):
     prompt = f"""
     Analise o seguinte email.
@@ -50,7 +46,6 @@ def analyze_email(content):
     temperature=0.3
 )
     
-    # Tratamento básico para garantir que venha limpo
     import json
     try:
         content = response.choices[0].message.content
@@ -58,7 +53,6 @@ def analyze_email(content):
     except:
         return {"classification": "Erro", "reply": "Não foi possível processar."}
 
-# --- 3. Rotas ---
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -67,7 +61,6 @@ def home():
 def process():
     content = ""
     
-    # Verifica se enviou arquivo ou texto direto
     if 'file' in request.files and request.files['file'].filename != '':
         file = request.files['file']
         if file.filename.endswith('.pdf'):
@@ -80,10 +73,8 @@ def process():
     if not content:
         return jsonify({"error": "Nenhum conteúdo fornecido"}), 400
 
-    # Aplica o pré-processamento (pra cumprir tabela)
     clean_content = preprocess_text(content)
     
-    # Chama a IA
     result = analyze_email(clean_content)
     
     return jsonify(result)

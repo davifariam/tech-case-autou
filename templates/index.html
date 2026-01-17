@@ -63,7 +63,7 @@
     document.getElementById('emailForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        // UI Handling
+    
         const btnText = document.querySelector('.btn-text');
         const spinner = document.querySelector('.loading');
         const resultCard = document.getElementById('resultCard');
@@ -72,7 +72,7 @@
         spinner.style.display = "inline-block";
         resultCard.style.display = "none";
 
-        // Preparar dados
+    
         const formData = new FormData();
         const text = document.getElementById('emailText').value;
         const file = document.getElementById('emailFile').files[0];
@@ -90,7 +90,7 @@
             });
             const data = await response.json();
 
-            // Exibir Resultado
+        
             const header = document.getElementById('resultHeader');
             const badge = document.getElementById('categoryBadge');
             
